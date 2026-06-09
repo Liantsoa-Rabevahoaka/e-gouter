@@ -50,7 +50,14 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->string('numero_commande', 50)->unique();
             $table->decimal('montant_total', 10, 2);
-            $table->enum('statut', ['en_attente', 'confirmee', 'preparation', 'livraison', 'livree', 'annulee'])->default('en_attente');
+            $table->enum('statut', [
+                'en attente de paiement', 
+                'payée', 
+                'en préparation', 
+                'en livraison', 
+                'livrée', 
+                'annulée'
+            ])->default('en attente de paiement');
             $table->string('mode_paiement', 50)->nullable();
             $table->text('adresse_livraison');
             $table->timestamps();
@@ -118,6 +125,23 @@ return new class extends Migration
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
+        
+        // 12. Table carts
+        Schema::create('carts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        // 13. Table cart_items
+        Schema::create('cart_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
+            $table->foreignId('produit_id')->constrained();
+            $table->integer('quantite')->default(1);
+            $table->decimal('prix_unitaire', 8, 2);
+            $table->timestamps();
+        });        
     }
 
     public function down(): void
@@ -133,5 +157,7 @@ return new class extends Migration
         Schema::dropIfExists('produits');
         Schema::dropIfExists('fournisseurs');
         Schema::dropIfExists('users');
+        Schema::dropIfExists('carts');
+        Schema::dropIfExists('cart_items');
     }
 };
