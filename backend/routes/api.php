@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/paiement/simuler/{commandeId}', [PaiementSimuleController::class, 'payer']);
 
     // Admin (optionnel)
-    Route::prefix('admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
         Route::get('/stats', [AdminController::class, 'stats']);
         Route::get('/fournisseurs', [AdminController::class, 'fournisseurs']);
         Route::get('/produits', [AdminController::class, 'produits']);

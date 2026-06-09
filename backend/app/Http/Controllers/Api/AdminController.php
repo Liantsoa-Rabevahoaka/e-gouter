@@ -10,15 +10,7 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-        $this->middleware(function ($request, $next) {
-            if ($request->user()->role !== 'admin') abort(403);
-            return $next($request);
-        });
-    }
-
+    // Le middleware 'auth:sanctum' et la vérification du rôle 'admin' seront faits dans les routes
     public function stats()
     {
         return response()->json([
