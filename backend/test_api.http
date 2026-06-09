@@ -1,0 +1,30 @@
+### Test 1 : Route publique
+GET http://127.0.0.1:8000/
+
+### Test 2 : Liste des fournisseurs proches
+GET http://127.0.0.1:8000/api/fournisseurs/proches/48.8566/2.3522
+
+### Test 3 : Produits d'un fournisseur
+GET http://127.0.0.1:8000/api/fournisseurs/1/produits
+
+### Test 4 : Inscription
+POST http://127.0.0.1:8000/api/register
+Content-Type: application/json
+
+{
+    "nom": "Test",
+    "prenom": "User",
+    "email": "test@test.com",
+    "telephone": "0699999999",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+### Test 5 : Connexion
+POST http://127.0.0.1:8000/api/login
+Content-Type: application/json
+
+{
+    "email": "client@egouter.com",
+    "password": "password"
+}
