@@ -14,7 +14,7 @@ class PanierController extends Controller
         return Cart::firstOrCreate(['user_id' => $userId]);
     }
 
-    public function getCart(Request $request)
+    public function showCart(Request $request)
     {
         $cart = $this->getCart($request->user()->id);
         $cart->load('items.produit');
