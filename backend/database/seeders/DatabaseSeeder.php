@@ -1,130 +1,184 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class EGouterDatabaseSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Nettoyage
-        DB::table('details_commandes')->truncate();
-        DB::table('commandes')->truncate();
+        // Nettoyage des tables (dans l'ordre inverse des dépendances)
         DB::table('cart_items')->truncate();
         DB::table('carts')->truncate();
+        DB::table('details_commandes')->truncate();
+        DB::table('commandes')->truncate();
         DB::table('produits')->truncate();
         DB::table('fournisseurs')->truncate();
         DB::table('users')->truncate();
 
-        // 1. Admin
+        // ==============================================
+        // 1. Création des utilisateurs
+        // ==============================================
+
+        // Admin
         $adminId = DB::table('users')->insertGetId([
-            'nom' => 'Admin', 'prenom' => 'System', 'email' => 'admin@egouter.com',
-            'telephone' => '0102030405', 'password' => Hash::make('password'), 'role' => 'admin',
-            'created_at' => now(), 'updated_at' => now(),
+            'nom' => 'Admin',
+            'prenom' => 'System',
+            'email' => 'admin@egouter.com',
+            'telephone' => '0102030405',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // 2. Client
+        // Client de test
         $clientId = DB::table('users')->insertGetId([
-            'nom' => 'Dupont', 'prenom' => 'Jean', 'email' => 'client@egouter.com',
-            'telephone' => '0612345678', 'password' => Hash::make('password'), 'role' => 'client',
-            'created_at' => now(), 'updated_at' => now(),
+            'nom' => 'Dupont',
+            'prenom' => 'Jean',
+            'email' => 'client@egouter.com',
+            'telephone' => '0612345678',
+            'password' => Hash::make('password'),
+            'role' => 'client',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // 3. Trois fournisseurs (comptes séparés)
-        $fournisseur1Id = DB::table('users')->insertGetId([
-            'nom' => 'Snack', 'prenom' => 'Express', 'email' => 'snack@egouter.com',
-            'telephone' => '0623456789', 'password' => Hash::make('password'), 'role' => 'fournisseur',
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        $fournisseur2Id = DB::table('users')->insertGetId([
-            'nom' => 'Chez', 'prenom' => 'Momo', 'email' => 'momo@egouter.com',
-            'telephone' => '0634567890', 'password' => Hash::make('password'), 'role' => 'fournisseur',
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        $fournisseur3Id = DB::table('users')->insertGetId([
-            'nom' => 'Pause', 'prenom' => 'Gourmande', 'email' => 'pause@egouter.com',
-            'telephone' => '0645678901', 'password' => Hash::make('password'), 'role' => 'fournisseur',
-            'created_at' => now(), 'updated_at' => now(),
+        // Fournisseur 1 - Snack Express
+        $f1UserId = DB::table('users')->insertGetId([
+            'nom' => 'Snack',
+            'prenom' => 'Express',
+            'email' => 'snack@egouter.com',
+            'telephone' => '0623456789',
+            'password' => Hash::make('password'),
+            'role' => 'fournisseur',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // 4. Fournisseurs (profil)
-        $f1 = DB::table('fournisseurs')->insertGetId([
-            'user_id' => $fournisseur1Id, 'nom' => 'Snack Express',
-            'adresse' => '15 Rue de Paris, 75001 Paris', 'latitude' => 48.856600, 'longitude' => 2.352200,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        $f2 = DB::table('fournisseurs')->insertGetId([
-            'user_id' => $fournisseur2Id, 'nom' => 'Chez Momo',
-            'adresse' => '42 Avenue des Champs, 75008 Paris', 'latitude' => 48.873800, 'longitude' => 2.295000,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        $f3 = DB::table('fournisseurs')->insertGetId([
-            'user_id' => $fournisseur3Id, 'nom' => 'Pause Gourmande',
-            'adresse' => '8 Boulevard Saint-Michel, 75005 Paris', 'latitude' => 48.846200, 'longitude' => 2.343100,
-            'created_at' => now(), 'updated_at' => now(),
+        // Fournisseur 2 - Chez Momo
+        $f2UserId = DB::table('users')->insertGetId([
+            'nom' => 'Chez',
+            'prenom' => 'Momo',
+            'email' => 'momo@egouter.com',
+            'telephone' => '0634567890',
+            'password' => Hash::make('password'),
+            'role' => 'fournisseur',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // 5. Produits
+        // Fournisseur 3 - Pause Gourmande
+        $f3UserId = DB::table('users')->insertGetId([
+            'nom' => 'Pause',
+            'prenom' => 'Gourmande',
+            'email' => 'pause@egouter.com',
+            'telephone' => '0645678901',
+            'password' => Hash::make('password'),
+            'role' => 'fournisseur',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // ==============================================
+        // 2. Création des fournisseurs (profils)
+        // ==============================================
+
+        // Snack Express (proche du centre de Paris)
+        $f1Id = DB::table('fournisseurs')->insertGetId([
+            'user_id' => $f1UserId,
+            'nom' => 'Snack Express',
+            'adresse' => '15 Rue de Rivoli, 75001 Paris',
+            'latitude' => 48.8566,
+            'longitude' => 2.3522,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Chez Momo (un peu plus au nord)
+        $f2Id = DB::table('fournisseurs')->insertGetId([
+            'user_id' => $f2UserId,
+            'nom' => 'Chez Momo',
+            'adresse' => '42 Boulevard de la Chapelle, 75018 Paris',
+            'latitude' => 48.8900,
+            'longitude' => 2.3500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Pause Gourmande (dans le quartier latin)
+        $f3Id = DB::table('fournisseurs')->insertGetId([
+            'user_id' => $f3UserId,
+            'nom' => 'Pause Gourmande',
+            'adresse' => '8 Rue Mouffetard, 75005 Paris',
+            'latitude' => 48.8425,
+            'longitude' => 2.3480,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // ==============================================
+        // 3. Création des produits
+        // ==============================================
+
+        // Produits pour Snack Express (f1Id)
         $produits = [
-            [$f1, 'Sandwich Jambon Beurre', 4.50, 'Sandwich traditionnel', 'https://picsum.photos/id/106/200/200'],
-            [$f1, 'Café Allongé', 2.00, 'Café Arabica', 'https://picsum.photos/id/225/200/200'],
-            [$f1, 'Jus d\'Orange', 3.00, 'Frais pressé', 'https://picsum.photos/id/102/200/200'],
-            [$f1, 'Croissant', 1.80, 'Feuilleté', 'https://picsum.photos/id/292/200/200'],
-            [$f1, 'Pain au Chocolat', 1.80, 'Artisanal', 'https://picsum.photos/id/264/200/200'],
-            [$f2, 'Tacos Viande', 7.50, 'Tacos sauce blanche', 'https://picsum.photos/id/108/200/200'],
-            [$f2, 'Frites Maison', 3.00, 'Frites fraîches', 'https://picsum.photos/id/127/200/200'],
-            [$f2, 'Coca-Cola', 2.00, '33cl', 'https://picsum.photos/id/129/200/200'],
-            [$f2, 'Muffin Chocolat', 2.50, 'Fondant', 'https://picsum.photos/id/136/200/200'],
-            [$f3, 'Salade César', 8.50, 'Poulet, parmesan', 'https://picsum.photos/id/143/200/200'],
-            [$f3, 'Quiche Lorraine', 5.00, 'Maison', 'https://picsum.photos/id/158/200/200'],
-            [$f3, 'Thé Vert', 2.20, 'Matcha menthe', 'https://picsum.photos/id/169/200/200'],
-            [$f3, 'Club Sandwich', 6.50, 'Poulet, bacon', 'https://picsum.photos/id/185/200/200'],
+            // Snack Express (f1Id)
+            [$f1Id, 'Sandwich Jambon Beurre', 'Sandwich traditionnel jambon beurre frais', 4.50, 'https://picsum.photos/id/106/200/200'],
+            [$f1Id, 'Café Allongé', 'Café 100% Arabica, torréfaction artisanale', 2.00, 'https://picsum.photos/id/225/200/200'],
+            [$f1Id, 'Jus d\'Orange', 'Jus d\'orange frais pressé sur place', 3.00, 'https://picsum.photos/id/102/200/200'],
+            [$f1Id, 'Croissant', 'Croissant pur beurre feuilleté maison', 1.80, 'https://picsum.photos/id/292/200/200'],
+            [$f1Id, 'Pain au Chocolat', 'Pain au chocolat artisanal', 1.80, 'https://picsum.photos/id/264/200/200'],
+            
+            // Chez Momo (f2Id)
+            [$f2Id, 'Tacos Viande', 'Tacos sauce blanche, viande, frites', 7.50, 'https://picsum.photos/id/108/200/200'],
+            [$f2Id, 'Frites Maison', 'Frites fraîches découpées maison', 3.00, 'https://picsum.photos/id/127/200/200'],
+            [$f2Id, 'Coca-Cola', 'Coca-Cola 33cl en bouteille', 2.00, 'https://picsum.photos/id/129/200/200'],
+            [$f2Id, 'Muffin Chocolat', 'Muffin fondant au cœur chocolat', 2.50, 'https://picsum.photos/id/136/200/200'],
+            
+            // Pause Gourmande (f3Id)
+            [$f3Id, 'Salade César', 'Poulet grillé, parmesan, croûtons, sauce césar', 8.50, 'https://picsum.photos/id/143/200/200'],
+            [$f3Id, 'Quiche Lorraine', 'Quiche faite maison, salade en accompagnement', 5.00, 'https://picsum.photos/id/158/200/200'],
+            [$f3Id, 'Thé Vert', 'Thé vert matcha menthe', 2.20, 'https://picsum.photos/id/169/200/200'],
+            [$f3Id, 'Club Sandwich', 'Club sandwich poulet, bacon, tomate, salade', 6.50, 'https://picsum.photos/id/185/200/200'],
         ];
-        foreach ($produits as $p) {
+
+        foreach ($produits as $produit) {
             DB::table('produits')->insert([
-                'fournisseur_id' => $p[0], 'nom' => $p[1], 'prix' => $p[2],
-                'description' => $p[3], 'image' => $p[4], 'created_at' => now(), 'updated_at' => now(),
+                'fournisseur_id' => $produit[0],
+                'nom' => $produit[1],
+                'description' => $produit[2],
+                'prix' => $produit[3],
+                'image' => $produit[4],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
-        // 6. Commandes
-        $commande1 = DB::table('commandes')->insertGetId([
+        // ==============================================
+        // 4. Créer un panier pour le client
+        // ==============================================
+        DB::table('carts')->insert([
             'user_id' => $clientId,
-            'numero_commande' => 'CMD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -4)),
-            'montant_total' => 8.50,
-            'statut' => 'livrée',
-            'mode_paiement' => 'MVola',
-            'adresse_livraison' => '12 Rue de Paris, 75001 Paris',
-            'created_at' => now()->subDays(2), 'updated_at' => now()->subDays(2),
-        ]);
-        DB::table('details_commandes')->insert([
-            'commande_id' => $commande1, 'produit_id' => 1, 'quantite' => 1, 'prix_unitaire' => 4.50,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        DB::table('details_commandes')->insert([
-            'commande_id' => $commande1, 'produit_id' => 2, 'quantite' => 2, 'prix_unitaire' => 2.00,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-
-        $commande2 = DB::table('commandes')->insertGetId([
-            'user_id' => $clientId,
-            'numero_commande' => 'CMD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -4)),
-            'montant_total' => 7.50,
-            'statut' => 'en attente de paiement',
-            'mode_paiement' => 'Orange Money',
-            'adresse_livraison' => '12 Rue de Paris, 75001 Paris',
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        DB::table('details_commandes')->insert([
-            'commande_id' => $commande2, 'produit_id' => 6, 'quantite' => 1, 'prix_unitaire' => 7.50,
-            'created_at' => now(), 'updated_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->command->info('✅ Base de données initialisée avec succès !');
-        $this->command->info('📊 Admin : admin@egouter.com / password');
-        $this->command->info('📊 Client : client@egouter.com / password');
-        $this->command->info('📊 Fournisseurs : snack@egouter.com, momo@egouter.com, pause@egouter.com / password');
+        $this->command->info('');
+        $this->command->info('📊 Comptes de test :');
+        $this->command->info('   Admin    : admin@egouter.com / password');
+        $this->command->info('   Client   : client@egouter.com / password');
+        $this->command->info('   Snack    : snack@egouter.com / password');
+        $this->command->info('   Momo     : momo@egouter.com / password');
+        $this->command->info('   Pause    : pause@egouter.com / password');
+        $this->command->info('');
+        $this->command->info('📍 Coordonnées des fournisseurs (pour tests GPS) :');
+        $this->command->info('   Snack Express   : 48.8566, 2.3522 (centre Paris)');
+        $this->command->info('   Chez Momo       : 48.8900, 2.3500 (nord Paris)');
+        $this->command->info('   Pause Gourmande : 48.8425, 2.3480 (quartier latin)');
     }
 }
