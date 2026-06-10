@@ -1,11 +1,17 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class DetailCommande extends Model
 {
-    protected $fillable = ['commande_id', 'produit_id', 'quantite', 'prix'];
+    // FORCER le nom de la table (pluriel)
+    protected $table = 'details_commandes';
+
+    protected $fillable = [
+        'commande_id', 'produit_id', 'quantite', 'prix_unitaire'
+    ];
 
     public function commande()
     {

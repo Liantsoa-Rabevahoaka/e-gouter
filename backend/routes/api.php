@@ -26,7 +26,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/produits/{id}', [ProduitController::class, 'show']);
 
     // Panier
-    Route::get('/panier', [PanierController::class, 'getCart']);
     Route::get('/panier', [PanierController::class, 'showCart']);
     Route::post('/panier/ajouter', [PanierController::class, 'addItem']);
     Route::put('/panier/item/{itemId}', [PanierController::class, 'updateItem']);
