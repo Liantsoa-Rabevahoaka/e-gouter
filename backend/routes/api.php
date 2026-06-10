@@ -1,4 +1,8 @@
 <?php
+
+// TEST : ce message doit disparaître si le fichier est chargé
+file_put_contents(public_path('test_api_loaded.txt'), 'Fichier api.php chargé à ' . date('Y-m-d H:i:s'));
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FournisseurController;
