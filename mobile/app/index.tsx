@@ -32,6 +32,7 @@ export default function HomeScreen() {
     setApiError(null);
     try {
       const response = await api.get(`/fournisseurs/proches/${location.lat}/${location.lon}`);
+      console.log('Fournisseurs reçus :', response.data.map(f => f.nom));
       setSuppliers(response.data);
     } catch (err) {
       console.error('❌ Erreur API:', err.response?.status, err.response?.data);

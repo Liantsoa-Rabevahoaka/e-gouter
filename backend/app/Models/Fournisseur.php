@@ -30,7 +30,7 @@ class Fournisseur extends Model
      * Scope pour récupérer les fournisseurs proches d'un point GPS
      * Formule de Haversine pour calculer la distance en kilomètres
      */
-    public function scopeProches($query, $lat, $lon, $distance = 50)
+    public function scopeProches($query, $lat, $lon, $distance = 500)
     {
         // Formule de Haversine : distance en km entre deux points GPS
         $haversine = "(6371 * acos(
