@@ -29,22 +29,30 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+  try {
     const response = await api.post('/login', { email, password });
     const { user, token } = response.data;
     await AsyncStorage.setItem('token', token);
     api.defaults.headers.Authorization = `Bearer ${token}`;
     setUser(user);
     return user;
-  };
-
+  } catch (error) {
+    // Propager l'erreur pour que le composant la gère
+    throw error;
+  }
+};
   const register = async (userData) => {
+  try {
     const response = await api.post('/register', userData);
     const { user, token } = response.data;
     await AsyncStorage.setItem('token', token);
     api.defaults.headers.Authorization = `Bearer ${token}`;
     setUser(user);
     return user;
-  };
+  } catch (error) {
+    throw error;
+  }
+};
 
   const logout = async () => {
     try {

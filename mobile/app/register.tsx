@@ -1,48 +1,128 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { TextInput, Button, Text, ActivityIndicator, Snackbar } from 'react-native-paper';
 import { useAuth } from '../src/context/AuthContext';
 import { router } from 'expo-router';
 
 export default function RegisterScreen() {
-  const [nom, setNom] = React.useState('');
-  const [prenom, setPrenom] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [telephone, setTelephone] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [email, setEmail] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const { register } = useAuth();
 
   const handleRegister = async () => {
+    if (!nom || !prenom || !email || !telephone || !password) {
+      setErrorMsg('Veuillez remplir tous les champs');
+      setSnackbarVisible(true);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Les mots de passe ne correspondent pas');
+      setSnackbarVisible(true);
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg('Le mot de passe doit contenir au moins 6 caractères');
+      setSnackbarVisible(true);
+      return;
+    }
+
+    setLoading(true);
     try {
       await register({ nom, prenom, email, telephone, password });
-      router.replace('/');
-    } catch (error) {
-      Alert.alert('Erreur', 'Inscription échouée');
+      setSuccessMsg('Inscription réussie ! Redirection...');
+      setSnackbarVisible(true);
+      setTimeout(() => {
+        router.replace('/');
+      }, 1500);
+    } catch (error: any) {
+      let message = 'Échec de l\'inscription';
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        message = Object.values(errors).flat()[0];
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+      setErrorMsg(message);
+      setSnackbarVisible(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Inscription</Text>
-      <TextInput style={styles.input} placeholder="Nom" value={nom} onChangeText={setNom} />
-      <TextInput style={styles.input} placeholder="Prénom" value={prenom} onChangeText={setPrenom} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
-      <TextInput style={styles.input} placeholder="Mot de passe" secureTextEntry value={password} onChangeText={setPassword} />
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>S'inscrire</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/login')}>
-        <Text style={styles.link}>Déjà un compte ? Connectez-vous</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text variant="headlineMedium" style={styles.title}>Inscription</Text>
+
+        <TextInput mode="outlined" label="Nom" value={nom} onChangeText={setNom} style={styles.input} />
+        <TextInput mode="outlined" label="Prénom" value={prenom} onChangeText={setPrenom} style={styles.input} />
+        <TextInput mode="outlined" label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={styles.input} />
+        <TextInput mode="outlined" label="Téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" style={styles.input} />
+
+        <TextInput
+          mode="outlined"
+          label="Mot de passe"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          style={styles.input}
+          right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
+        />
+
+        <TextInput
+          mode="outlined"
+          label="Confirmer le mot de passe"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+          style={styles.input}
+          right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
+        />
+
+        <Button
+          mode="contained"
+          onPress={handleRegister}
+          loading={loading}
+          disabled={loading}
+          style={styles.button}
+          buttonColor="#e67e22"
+        >
+          S'inscrire
+        </Button>
+
+        <Button mode="text" onPress={() => router.push('/login')} style={styles.linkButton}>
+          Déjà un compte ? Connectez-vous
+        </Button>
+
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={successMsg ? 2000 : 4000}
+          action={{ label: 'OK', onPress: () => setSnackbarVisible(false) }}
+        >
+          {errorMsg || successMsg}
+        </Snackbar>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#e67e22' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 12 },
-  button: { backgroundColor: '#e67e22', padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  link: { textAlign: 'center', marginTop: 16, color: '#e67e22' },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 20, backgroundColor: '#f8f9fa' },
+  title: { textAlign: 'center', marginBottom: 30, color: '#e67e22', fontWeight: 'bold' },
+  input: { marginBottom: 12, backgroundColor: '#fff' },
+  button: { marginTop: 10, paddingVertical: 6, borderRadius: 10 },
+  linkButton: { marginTop: 16 },
 });
