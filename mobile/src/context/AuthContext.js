@@ -13,20 +13,24 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loadStoredUser = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (token) {
-        api.defaults.headers.Authorization = `Bearer ${token}`;
-        const response = await api.get('/user');
-        setUser(response.data);
-      }
-    } catch (error) {
-      console.error('Erreur chargement utilisateur', error);
-      await AsyncStorage.removeItem('token');
-    } finally {
-      setLoading(false);
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      api.defaults.headers.Authorization = `Bearer ${token}`;
+      const response = await api.get('/user');
+      setUser(response.data);
     }
-  };
+  } catch (error) {
+    console.error('Erreur chargement utilisateur', error);
+    if (error.response?.status === 401) {
+      await AsyncStorage.removeItem('token');
+      delete api.defaults.headers.Authorization;
+      // Ne pas rediriger ici, on laisse l'écran gérer
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const login = async (email, password) => {
   try {

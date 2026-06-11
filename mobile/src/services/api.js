@@ -2,7 +2,9 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Utilisez l'IP de votre machine (celle du backend Laravel)
-const API_URL = 'http://192.168.33.77:8000/api';  // À remplacer par votre IP
+// const API_URL = 'http://192.168.33.77:8000/api';  // IP exterieur
+const API_URL = 'http://192.168.42.161:8000/api';  // IP maison
+
 
 const api = axios.create({
   baseURL: API_URL,
@@ -23,8 +25,10 @@ api.interceptors.response.use(
   response => response,
   async error => {
     if (error.response?.status === 401) {
+      // Déclencher une déconnexion globale
       await AsyncStorage.removeItem('token');
-      // Navigation vers login (à implémenter via un event ou un contexte)
+      delete api.defaults.headers.Authorization;
+      // Optionnel : émettre un événement (mais pas nécessaire)
     }
     return Promise.reject(error);
   }
