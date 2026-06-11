@@ -2,8 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Utilisez l'IP de votre machine (celle du backend Laravel)
-// const API_URL = 'http://192.168.33.77:8000/api';  // IP exterieur
-const API_URL = 'http://192.168.42.161:8000/api';  // IP maison
+const API_URL = 'http://192.168.42.176:8000/api';  // IP à changer
 
 
 const api = axios.create({

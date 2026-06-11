@@ -17,10 +17,12 @@ export default function RootLayout() {
                 <Stack.Screen name="login" />
                 <Stack.Screen name="register" />
                 <Stack.Screen name="cart" />
+                <Stack.Screen name="checkout" />
+                <Stack.Screen name="payment/[id]" />
                 <Stack.Screen name="orders" />
                 <Stack.Screen name="order/[id]" />
                 <Stack.Screen name="supplier/[id]" />
-                <Stack.Screen name="admin" />
+                <Stack.Screen name="admin" />                
               </Stack>
             </OrderProvider>
           </CartProvider>
