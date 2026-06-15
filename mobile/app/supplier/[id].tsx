@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, ScrollView } from 'react-native';
-import { Text, ActivityIndicator, Button, Appbar, Card, Divider } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, FlatList, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { Text, ActivityIndicator, Button, Appbar, Card, Snackbar } from 'react-native-paper';
 import { useLocalSearchParams, router } from 'expo-router';
 import api from '../../src/services/api';
 import ProductCard from '../../src/components/ProductCard';
+import { useCart } from '../../src/context/CartContext'; // ← Importer le hook
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -13,6 +13,9 @@ export default function SupplierDetailScreen() {
   const [supplier, setSupplier] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const { addItem } = useCart(); // ← Récupérer addItem
 
   useEffect(() => {
     loadSupplier();
@@ -29,10 +32,16 @@ export default function SupplierDetailScreen() {
     }
   };
 
-  const handleAddToCart = (productId) => {
+  const handleAddToCart = async (productId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // TODO: Intégrer avec CartContext dans Phase 8
-    console.log('Ajouter au panier:', productId);
+    try {
+      await addItem(productId, 1); // ← Appel réel au contexte
+      setSnackbarMsg('Produit ajouté au panier');
+      setSnackbarVisible(true);
+    } catch (err) {
+      setSnackbarMsg("Erreur lors de l'ajout");
+      setSnackbarVisible(true);
+    }
   };
 
   if (loading) {
@@ -62,7 +71,6 @@ export default function SupplierDetailScreen() {
       </Appbar.Header>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Card */}
         <Card style={styles.infoCard} elevation={0}>
           <Card.Content>
             <View style={styles.addressContainer}>
@@ -74,11 +82,12 @@ export default function SupplierDetailScreen() {
           </Card.Content>
         </Card>
 
-        {/* Products List */}
         <FlatList
           data={supplier.produits}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <ProductCard product={item} onAddToCart={handleAddToCart} />}
+          renderItem={({ item }) => (
+            <ProductCard product={item} onAddToCart={() => handleAddToCart(item.id)} />
+          )}
           scrollEnabled={false}
           contentContainerStyle={styles.productsList}
           ListEmptyComponent={
@@ -88,10 +97,20 @@ export default function SupplierDetailScreen() {
           }
         />
       </ScrollView>
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2000}
+        action={{ label: 'OK', onPress: () => setSnackbarVisible(false) }}
+      >
+        {snackbarMsg}
+      </Snackbar>
     </SafeAreaView>
   );
 }
 
+// (styles inchangés)
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   header: { backgroundColor: '#fff', elevation: 0, borderBottomWidth: 1, borderBottomColor: '#eee' },
