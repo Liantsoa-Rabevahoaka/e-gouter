@@ -12,7 +12,9 @@ use App\Http\Controllers\Api\AdminController;
 // Routes publiques (authentification)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::get('/test', function() {
+    return response()->json(['message' => 'API works']);
+});
 // Routes protégées (authentification requise)
 Route::middleware('auth:sanctum')->group(function () {
     // Authentification

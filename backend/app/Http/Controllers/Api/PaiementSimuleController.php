@@ -8,34 +8,27 @@ use Illuminate\Http\Request;
 
 class PaiementSimuleController extends Controller
 {
-    /**
-     * Simuler un paiement pour une commande
-     * POST /api/paiement/simuler/{commandeId}
-     */
     public function payer(Request $request, $commandeId)
     {
         $commande = Commande::findOrFail($commandeId);
 
-        // Vérifier que la commande appartient à l'utilisateur connecté
+        // Vérifier que la commande appartient à l'utilisateur
         if ($commande->user_id !== $request->user()->id) {
             return response()->json(['error' => 'Non autorisé'], 403);
         }
 
-        // Vérifier que la commande est bien en attente de paiement
+        // Vérifier que la commande est en attente de paiement
         if ($commande->statut !== 'en attente de paiement') {
             return response()->json(['error' => 'Cette commande ne peut pas être payée'], 400);
         }
 
-        // Si le mode de paiement est "paiement à la livraison", on ne change pas le statut
-        if ($commande->mode_paiement === 'paiement à la livraison') {
-            $message = "Paiement à la livraison - À régler à la réception";
-            // On passe directement en livraison ? Non, on attend la livraison
-            // Pour le suivi, on peut laisser en "en attente de paiement" ou passer en "en préparation"
-            // Selon le cahier des charges, on laisse en attente
-        } else {
+        // Si le mode est "paiement à la livraison", on ne change pas le statut (on garde en attente)
+        if ($commande->mode_paiement !== 'paiement à la livraison') {
             $commande->statut = 'payée';
             $commande->save();
             $message = "Paiement simulé effectué avec succès";
+        } else {
+            $message = "Paiement à la livraison - À régler à la réception";
         }
 
         return response()->json([

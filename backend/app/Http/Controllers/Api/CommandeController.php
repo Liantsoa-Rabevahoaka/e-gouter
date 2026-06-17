@@ -53,6 +53,9 @@ class CommandeController extends Controller
                 'mode_paiement' => $request->mode_paiement,
                 'adresse_livraison' => $request->adresse_livraison
             ]);
+            
+            // Log de création de commande
+            Log::info('Commande créée', ['user_id' => $user->id, 'total' => $montantTotal]);
 
             // 7. Créer les détails de la commande
             foreach ($cart->items as $item) {

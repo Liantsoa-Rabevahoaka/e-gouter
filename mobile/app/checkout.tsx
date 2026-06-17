@@ -34,6 +34,9 @@ export default function CheckoutScreen() {
     setLoading(true);
     try {
       const order = await validateOrder(paymentMethod, address);
+
+      console.log('Commande retournée:', order);
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await clearCart(); // vider le panier localement
       router.push(`/payment/${order.id}`);

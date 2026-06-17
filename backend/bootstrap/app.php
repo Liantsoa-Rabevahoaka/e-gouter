@@ -19,12 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Intercepter les erreurs d'authentification pour l'API
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Non authentifié. Veuillez fournir un token valide.'
-                ], 401);
-            }
-        });
+    $exceptions->render(function (AuthenticationException $e, Request $request) {
+        if ($request->is('api/*')) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+    });
+    
+    $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
+        return $request->is('api/*') || $request->expectsJson();
+    });
     })->create();
