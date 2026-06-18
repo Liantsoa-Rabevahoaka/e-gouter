@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 
 export default function PaymentScreen() {
   const { id } = useLocalSearchParams();
-  const { trackOrder, simulatePayment } = useOrders();
+  const { trackOrder, simulatePayment, fetchOrders } = useOrders(); // ← AJOUTER fetchOrders
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -32,6 +32,7 @@ export default function PaymentScreen() {
     setProcessing(true);
     try {
       await simulatePayment(id);
+      await fetchOrders();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push(`/order/${id}`);
     } catch (err) {

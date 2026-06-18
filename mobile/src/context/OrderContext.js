@@ -10,13 +10,19 @@ export const OrderProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const fetchOrders = async () => {
-    if (!user) return;
+    if (!user) {
+      console.warn('fetchOrders ignoré : utilisateur non connecté');
+      return;
+    }
     setLoading(true);
     try {
       const response = await api.get('/commandes');
       setOrders(response.data);
     } catch (error) {
       console.error('Erreur fetchOrders', error);
+      if (error.response?.status === 401) {
+        // Token invalide : on pourrait déconnecter l'utilisateur
+      }
     } finally {
       setLoading(false);
     }
@@ -29,12 +35,13 @@ export const OrderProvider = ({ children }) => {
 
   const validateOrder = async (mode_paiement, adresse_livraison) => {
     const response = await api.post('/commande/valider', { mode_paiement, adresse_livraison });
-    await fetchOrders(); // Rafraîchir l'historique
+    await fetchOrders(); // Rafraîchir l'historique après validation
     return response.data.commande;
   };
 
   const simulatePayment = async (commandeId) => {
     const response = await api.post(`/paiement/simuler/${commandeId}`);
+    await fetchOrders(); // Rafraîchir l'historique après paiement
     return response.data;
   };
 
