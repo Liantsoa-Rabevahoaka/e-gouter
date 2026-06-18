@@ -1,14 +1,15 @@
 // app/index.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native'; // ← TouchableOpacity ajouté
+import { View, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, ActivityIndicator, Button, Appbar, Menu, Divider } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons'; // ← Ionicons ajouté
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/context/AuthContext';
 import { useGeolocation } from '../src/hooks/useGeolocation';
 import api from '../src/services/api';
 import SupplierCard from '../src/components/SupplierCard';
-import MapComponent from '../src/components/MapView'; // ← import du composant carte
+import MapComponent from '../src/components/MapView';
+import SupplierBottomSheet from '../src/components/SupplierBottomSheet';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -20,7 +21,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // 'list' ou 'map'
+  const [viewMode, setViewMode] = useState('list');
 
   // Redirection immédiate si non authentifié
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function HomeScreen() {
     router.replace('/login');
   };
 
-  // États de chargement et d'erreur (inchangés)
+  // États de chargement et d'erreur
   if (authLoading) {
     return (
       <View style={styles.centered}>
@@ -148,7 +149,6 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.header}>
         <Appbar.Content title="E-Goûter" titleStyle={styles.headerTitle} />
-        {/* Bouton pour basculer entre liste et carte */}
         <TouchableOpacity onPress={() => setViewMode(viewMode === 'list' ? 'map' : 'list')} style={styles.toggleButton}>
           <Ionicons name={viewMode === 'list' ? 'map' : 'list'} size={24} color="#e67e22" />
         </TouchableOpacity>
@@ -174,7 +174,6 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Fournisseurs proches de vous</Text>
       </View>
 
-      {/* Rendu conditionnel : liste ou carte */}
       {viewMode === 'list' ? (
         <FlatList
           data={suppliers}
@@ -197,7 +196,19 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         />
       ) : (
-        <MapComponent suppliers={suppliers} userLocation={location} />
+        <View style={styles.mapContainer}>
+          <MapComponent
+            suppliers={suppliers}
+            userLocation={location}
+          />
+          {/* Afficher le BottomSheet uniquement si des fournisseurs existent */}
+          {suppliers.length > 0 && (
+            <SupplierBottomSheet
+              suppliers={suppliers}
+              onSupplierPress={handleSupplierPress}
+            />
+          )}
+        </View>
       )}
     </SafeAreaView>
   );
@@ -218,4 +229,10 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   loadingText: { marginTop: 12, fontSize: 14, color: '#666' },
   errorText: { fontSize: 16, color: 'red', marginBottom: 16, textAlign: 'center' },
+  // ⬇️ STYLE AJOUTÉ pour le conteneur de la carte
+  mapContainer: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#f0f0f0',
+  },
 });
