@@ -1,11 +1,14 @@
+// app/index.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native'; // ← TouchableOpacity ajouté
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, ActivityIndicator, Button, Appbar, Menu, Divider } from 'react-native-paper';
+import { Ionicons } from '@expo/vector-icons'; // ← Ionicons ajouté
 import { useAuth } from '../src/context/AuthContext';
 import { useGeolocation } from '../src/hooks/useGeolocation';
 import api from '../src/services/api';
 import SupplierCard from '../src/components/SupplierCard';
+import MapComponent from '../src/components/MapView'; // ← import du composant carte
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -17,6 +20,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' ou 'map'
 
   // Redirection immédiate si non authentifié
   useEffect(() => {
@@ -26,9 +30,9 @@ export default function HomeScreen() {
   }, [authLoading, user]);
 
   const loadSuppliers = useCallback(async () => {
-    if (!user) return; // Ne pas charger si pas connecté
+    if (!user) return;
     if (!location) return;
-    
+
     setApiError(null);
     try {
       const response = await api.get(`/fournisseurs/proches/${location.lat}/${location.lon}`);
@@ -37,7 +41,6 @@ export default function HomeScreen() {
     } catch (err) {
       console.error('❌ Erreur API:', err.response?.status, err.response?.data);
       if (err.response?.status === 401) {
-        // Token invalide : déconnecter l'utilisateur
         await logout();
         router.replace('/login');
       } else {
@@ -77,7 +80,7 @@ export default function HomeScreen() {
     router.replace('/login');
   };
 
-  // Pendant le chargement de l'authentification, ne rien afficher (évite flash)
+  // États de chargement et d'erreur (inchangés)
   if (authLoading) {
     return (
       <View style={styles.centered}>
@@ -86,12 +89,10 @@ export default function HomeScreen() {
     );
   }
 
-  // Si non authentifié, ne rien afficher (la redirection va s'effectuer)
   if (!user) {
     return null;
   }
 
-  // Géolocalisation en cours
   if (geoLoading) {
     return (
       <View style={styles.centered}>
@@ -147,6 +148,10 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.header}>
         <Appbar.Content title="E-Goûter" titleStyle={styles.headerTitle} />
+        {/* Bouton pour basculer entre liste et carte */}
+        <TouchableOpacity onPress={() => setViewMode(viewMode === 'list' ? 'map' : 'list')} style={styles.toggleButton}>
+          <Ionicons name={viewMode === 'list' ? 'map' : 'list'} size={24} color="#e67e22" />
+        </TouchableOpacity>
         <Menu
           visible={menuVisible}
           onDismiss={() => setMenuVisible(false)}
@@ -154,12 +159,9 @@ export default function HomeScreen() {
         >
           <Menu.Item onPress={() => { setMenuVisible(false); router.push('/orders'); }} title="Mes commandes" />
           <Menu.Item onPress={() => { setMenuVisible(false); router.push('/cart'); }} title="Mon panier" />
-
-          {/* Afficher Admin uniquement si rôle = admin */}
-            {user?.role === 'admin' && (
-              <Menu.Item onPress={() => { setMenuVisible(false); router.push('/admin'); }} title="Administration" leadingIcon="shield" />
-            )}
-
+          {user?.role === 'admin' && (
+            <Menu.Item onPress={() => { setMenuVisible(false); router.push('/admin'); }} title="Administration" leadingIcon="shield" />
+          )}
           <Divider />
           <Menu.Item onPress={handleLogout} title="Déconnexion" leadingIcon="logout" />
         </Menu>
@@ -172,26 +174,31 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Fournisseurs proches de vous</Text>
       </View>
 
-      <FlatList
-        data={suppliers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <SupplierCard supplier={item} onPress={() => handleSupplierPress(item.id)} />
-        )}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#e67e22']} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Aucun fournisseur trouvé à proximité</Text>
-            <Button mode="text" onPress={onRefresh} textColor="#e67e22">
-              Rafraîchir
-            </Button>
-          </View>
-        }
-        contentContainerStyle={suppliers.length === 0 ? styles.emptyList : styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Rendu conditionnel : liste ou carte */}
+      {viewMode === 'list' ? (
+        <FlatList
+          data={suppliers}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <SupplierCard supplier={item} onPress={() => handleSupplierPress(item.id)} />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#e67e22']} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Aucun fournisseur trouvé à proximité</Text>
+              <Button mode="text" onPress={onRefresh} textColor="#e67e22">
+                Rafraîchir
+              </Button>
+            </View>
+          }
+          contentContainerStyle={suppliers.length === 0 ? styles.emptyList : styles.list}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <MapComponent suppliers={suppliers} userLocation={location} />
+      )}
     </SafeAreaView>
   );
 }
@@ -200,6 +207,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   header: { backgroundColor: '#fff', elevation: 0, borderBottomWidth: 1, borderBottomColor: '#eee' },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#e67e22' },
+  toggleButton: { padding: 8, marginRight: 4 },
   welcomeContainer: { paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
   welcomeText: { fontSize: 22, fontWeight: 'bold', color: '#1a1a2e' },
   subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
