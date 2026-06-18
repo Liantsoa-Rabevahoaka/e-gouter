@@ -154,6 +154,12 @@ export default function HomeScreen() {
         >
           <Menu.Item onPress={() => { setMenuVisible(false); router.push('/orders'); }} title="Mes commandes" />
           <Menu.Item onPress={() => { setMenuVisible(false); router.push('/cart'); }} title="Mon panier" />
+
+          {/* Afficher Admin uniquement si rôle = admin */}
+            {user?.role === 'admin' && (
+              <Menu.Item onPress={() => { setMenuVisible(false); router.push('/admin'); }} title="Administration" leadingIcon="shield" />
+            )}
+
           <Divider />
           <Menu.Item onPress={handleLogout} title="Déconnexion" leadingIcon="logout" />
         </Menu>
