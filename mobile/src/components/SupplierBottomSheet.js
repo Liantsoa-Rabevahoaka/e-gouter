@@ -15,6 +15,7 @@ export default function SupplierBottomSheet({ suppliers, onSupplierPress }) {
       index={1}
       style={styles.bottomSheet}
       backgroundStyle={styles.bottomSheetBackground}
+      containerStyle={styles.containerStyle} // ← Ajout d’un style de conteneur
     >
       <View style={styles.handleContainer}>
         <View style={styles.handle} />
@@ -48,6 +49,9 @@ export default function SupplierBottomSheet({ suppliers, onSupplierPress }) {
 }
 
 const styles = StyleSheet.create({
+  containerStyle: {
+    zIndex: 10, // ← Priorité sur la carte
+  },
   bottomSheet: {
     marginHorizontal: 0,
   },

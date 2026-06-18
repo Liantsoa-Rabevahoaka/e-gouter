@@ -197,6 +197,7 @@ export default function HomeScreen() {
         />
       ) : (
         <View style={styles.mapContainer}>
+          {console.log('📦 Suppliers for map:', suppliers.length)}
           <MapComponent
             suppliers={suppliers}
             userLocation={location}
