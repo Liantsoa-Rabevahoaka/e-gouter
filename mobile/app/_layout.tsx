@@ -20,8 +20,8 @@ function ConditionalLayout() {
   if (!user) {
     return (
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="auth/login" />
-        <Stack.Screen name="auth/register" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
       </Stack>
     );
   }
@@ -37,7 +37,18 @@ export default function RootLayout() {
           <AuthProvider>
             <CartProvider>
               <OrderProvider>
-                <ConditionalLayout />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />      
+                  <Stack.Screen name="login" />      
+                  <Stack.Screen name="register" />   
+                  <Stack.Screen name="cart" />
+                  <Stack.Screen name="checkout" />
+                  <Stack.Screen name="payment/[id]" />
+                  <Stack.Screen name="orders" />
+                  <Stack.Screen name="order/[id]" />
+                  <Stack.Screen name="supplier/[id]" />
+                  <Stack.Screen name="admin" />
+                </Stack>                
               </OrderProvider>
             </CartProvider>
           </AuthProvider>
